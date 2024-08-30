@@ -1,5 +1,8 @@
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -23,17 +26,28 @@ export default function Login(){
         setPassword(event.target.value);
     }
 
-    const handleLogin= () =>{
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post("http://localhost:8000/api/auth/login", {
+                email: email,
+                password: password,
+            });
 
-        try{
-            console.log('Login successful');
-            navigate('/signup');
-        }
-        catch(err){
+            const sessionToken = response.data.access;
+            Cookies.set('sessionToken', sessionToken);
+
+            // Decode the token to extract the email
+            const decodedToken = jwtDecode(sessionToken);
+            const userEmail = decodedToken.email;
+            console.log("User email:", userEmail);
+
+            console.log("Login successful");
+            navigate('/dashboard');
+        } catch (err) {
             console.log(err);
-            console.log('Login failed');
+            console.log('Error in login');
         }
-    }
+    };
 
     return (
         <div className="login-page" style={{display: "grid", gridTemplateColumns: "1fr 1fr", height: "100vh"}}>
